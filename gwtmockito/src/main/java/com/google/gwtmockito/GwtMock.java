@@ -25,8 +25,8 @@ import java.lang.annotation.Target;
  * Annotates a field to be filled with a mock object and returned via calls to
  * GWT.create. Any calls to GWT.create for a type matching the type of the field
  * will return that field. In order for this annotation to take effect, the test
- * must either be run with {@link GwtMockitoTestRunner} or it must invoke
- * {@link GwtMockito#initMocks}.
+ * must be run with {@link GwtMockitoExtension} (or the deprecated
+ * {@link GwtMockitoTestRunner}) or it must invoke {@link GwtMockito#initMocks}.
  *
  * @see GwtMockito
  * @author ekuefler@google.com (Erik Kuefler)

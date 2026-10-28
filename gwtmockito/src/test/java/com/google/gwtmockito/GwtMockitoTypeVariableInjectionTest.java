@@ -15,11 +15,11 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
@@ -38,7 +38,7 @@ import org.mockito.Mock;
  * {@code Middle} before being bound at {@code Concrete}. Resolution must recurse with the
  * original concrete class, not with {@code Middle}, to find the binding.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 public class GwtMockitoTypeVariableInjectionTest {
 
   /** Unique presenter interface — only one mock of this type exists, so injection is unambiguous. */
@@ -87,10 +87,8 @@ public class GwtMockitoTypeVariableInjectionTest {
     // resolveTypeVariable() must resolve P → MyPresenter, then find the unique
     // compatible mock and inject it.  Without the fix, presenter would be null
     // (erasure Object → ambiguous → placeholder used instead of our mock).
-    assertNotNull("view must not be null", view);
-    assertSame(
-        "BaseView.presenter (P resolved to MyPresenter) must be the declared @Mock",
-        presenter, view.presenter);
+    assertNotNull(view, "view must not be null");
+    assertSame(presenter, view.presenter, "BaseView.presenter (P resolved to MyPresenter) must be the declared @Mock");
   }
 
   @Test
@@ -101,9 +99,7 @@ public class GwtMockitoTypeVariableInjectionTest {
     // the binding Middle.P=MyPresenter supplied by ConcreteView2.
     // Before the fix (child passed instead of concreteClass), the recursion started
     // from Middle and could not see ConcreteView2's binding, returning null.
-    assertNotNull("view2 must not be null", view2);
-    assertSame(
-        "BaseView.presenter must be resolved through MiddleView and injected",
-        presenter, view2.presenter);
+    assertNotNull(view2, "view2 must not be null");
+    assertSame(presenter, view2.presenter, "BaseView.presenter must be resolved through MiddleView and injected");
   }
 }

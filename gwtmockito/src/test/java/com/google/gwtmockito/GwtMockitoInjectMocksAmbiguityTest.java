@@ -15,15 +15,15 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
@@ -39,7 +39,7 @@ import java.lang.reflect.Field;
  * <p>The test uses two {@code @Mock Widget}-subtype fields ({@link Label} and {@link TextBox}),
  * which would trigger Mockito 5's ambiguity check on the inherited {@code Composite.widget} field.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 public class GwtMockitoInjectMocksAmbiguityTest {
 
   /**
@@ -84,9 +84,9 @@ public class GwtMockitoInjectMocksAmbiguityTest {
   @Test
   public void testInjectMocksDoesNotFailOnAmbiguousGwtBaseClassFields() {
     // Both named fields must have been injected correctly.
-    assertNotNull("view must not be null", view);
-    assertSame("label mock should be injected by name", label, view.label);
-    assertSame("textBox mock should be injected by name", textBox, view.textBox);
+    assertNotNull(view, "view must not be null");
+    assertSame(label, view.label, "label mock should be injected by name");
+    assertSame(textBox, view.textBox, "textBox mock should be injected by name");
   }
 
   @Test
@@ -96,7 +96,7 @@ public class GwtMockitoInjectMocksAmbiguityTest {
     Field widgetField = Composite.class.getDeclaredField("widget");
     widgetField.setAccessible(true);
     Object inheritedWidget = widgetField.get(view);
-    assertNotNull("Composite.widget must be set (non-null) by the ambiguity fix", inheritedWidget);
+    assertNotNull(inheritedWidget, "Composite.widget must be set (non-null) by the ambiguity fix");
   }
 
   @Test
@@ -104,10 +104,8 @@ public class GwtMockitoInjectMocksAmbiguityTest {
     // When Mockito aborts at the first @InjectMocks target (view) due to the GWT ambiguity,
     // the second target (anotherView) is left null. injectIntoAllTargets must construct it
     // via no-arg constructor and inject the named mocks into it.
-    assertNotNull("anotherView must not be null after recovery", anotherView);
-    assertSame("anotherLabel must be injected by name into anotherView",
-        anotherLabel, anotherView.anotherLabel);
-    assertSame("anotherTextBox must be injected by name into anotherView",
-        anotherTextBox, anotherView.anotherTextBox);
+    assertNotNull(anotherView, "anotherView must not be null after recovery");
+    assertSame(anotherLabel, anotherView.anotherLabel, "anotherLabel must be injected by name into anotherView");
+    assertSame(anotherTextBox, anotherView.anotherTextBox, "anotherTextBox must be injected by name into anotherView");
   }
 }

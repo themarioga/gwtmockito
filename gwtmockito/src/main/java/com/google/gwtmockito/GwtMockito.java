@@ -56,14 +56,15 @@ import java.util.stream.Collectors;
 /**
  * A library to make Mockito-based testing of GWT applications easier. Most
  * users won't have to reference this class directly and should instead use
- * {@link GwtMockitoTestRunner}. Users who cannot use that class (e.g. tests
- * using JUnit3) can invoke {@link #initMocks} directly in their setUp and
- * {@link #tearDown} in their tearDown methods.
+ * {@link GwtMockitoExtension} with JUnit Jupiter (or the deprecated
+ * {@link GwtMockitoTestRunner} with JUnit 4). Users who cannot use either can
+ * invoke {@link #initMocks} directly in their setUp and {@link #tearDown} in
+ * their tearDown methods.
  * <p>
  * Note that calling {@link #initMocks} and {@link #tearDown} directly does
- * <i>not</i> implement {@link GwtMockitoTestRunner}'s behavior of implementing
- * native methods and making final methods mockable. The only way to get this
- * behavior is by using {@link GwtMockitoTestRunner}.
+ * <i>not</i> implement the extension's behavior of implementing native methods
+ * and making final methods mockable. That behavior is only available through
+ * {@link GwtMockitoExtension} or {@link GwtMockitoTestRunner}.
  * <p>
  * Once {@link #initMocks} has been invoked, test code can safely call
  * GWT.create without exceptions. Doing so will return either a mock object
@@ -93,7 +94,7 @@ import java.util.stream.Collectors;
  * {@link #tearDown} once the test has been completed. Failure to do so can
  * cause state to leak between tests.
  *
- * @see GwtMockitoTestRunner
+ * @see GwtMockitoExtension
  * @see GwtMock
  * @author ekuefler@google.com (Erik Kuefler)
  */

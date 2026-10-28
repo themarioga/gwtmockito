@@ -15,20 +15,22 @@
  */
 package com.google.gwtmockito;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.google.gwtmockito.subpackage.LoadedFromStandardClassLoader;
 
 /**
  * Test checking the behavior of the {@link @WithPackagesToLoadViaStandardClassLoader} annotation.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 @WithPackagesToLoadViaStandardClassLoader("com.google.gwtmockito.subpackage")
 public class WithPackagesToLoadViaStandardClassLoaderTest {
 
-  @Test(expected = LinkageError.class)
+  @Test
   public void shouldNotReloadBlacklistedClasses() {
-    new LoadedFromStandardClassLoader().nativeMethod();
+    assertThrows(LinkageError.class, () -> new LoadedFromStandardClassLoader().nativeMethod());
   }
 }

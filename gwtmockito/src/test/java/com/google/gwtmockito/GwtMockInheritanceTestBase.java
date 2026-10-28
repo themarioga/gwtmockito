@@ -15,12 +15,12 @@
  */
 package com.google.gwtmockito;
 
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Base class for {@link GwtMockInheritanceTest}.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 public class GwtMockInheritanceTestBase {
   @GwtMock protected SampleInterface mockedSuperMember;
 

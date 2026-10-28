@@ -15,17 +15,17 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gwtmockito.WithClassesToStubTest.ClassToStub;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Test checking the behavior of the {@link WithClassesToStub} annotation.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 @WithClassesToStub({ClassToStub.class})
 public class WithClassesToStubTest {
 

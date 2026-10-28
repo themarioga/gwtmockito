@@ -17,12 +17,13 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -82,10 +83,11 @@ import com.google.gwt.user.datepicker.client.DatePicker;
 import com.google.gwtmockito.fakes.FakeProvider;
 
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.hamcrest.MatcherAssert;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 
@@ -93,9 +95,9 @@ import java.util.Date;
 import java.util.Set;
 
 /**
- * Tests for {@link GwtMockito} when running with {@link GwtMockitoTestRunner}.
+ * Tests for {@link GwtMockito} when running with {@link GwtMockitoExtension}.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 public class GwtMockitoTest {
 
   @GwtMock SampleInterface mockedInterface;
@@ -103,7 +105,7 @@ public class GwtMockitoTest {
   @Mock PackagePrivateClass packagePrivateClass;
   @Mock Object someMock;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     GWT.create(SomeUiBinder.class); // Make sure GWT.create in setUp works
   }
@@ -241,28 +243,30 @@ public class GwtMockitoTest {
     assertSame(someWidget, GWT.create(Label.class));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void shouldNotAllowProvidersForGwtMockedTypes() {
-    GwtMockito.useProviderForType(SampleInterface.class, new FakeProvider<SampleInterface>() {
-      @Override
-      public SampleInterface getFake(Class<?> type) {
-        return mock(SampleInterface.class);
-      }
-    });
+    assertThrows(IllegalArgumentException.class, () ->
+        GwtMockito.useProviderForType(SampleInterface.class, new FakeProvider<SampleInterface>() {
+          @Override
+          public SampleInterface getFake(Class<?> type) {
+            return mock(SampleInterface.class);
+          }
+        }));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void shouldNotAllowMultipleGwtMocksForSameType() {
-    GwtMockito.initMocks(new Object() {
-      @GwtMock SampleInterface mock1;
-      @GwtMock SampleInterface mock2;
-    });
+    assertThrows(IllegalArgumentException.class, () ->
+        GwtMockito.initMocks(new Object() {
+          @GwtMock SampleInterface mock1;
+          @GwtMock SampleInterface mock2;
+        }));
   }
 
   @Test
   public void shouldMockGwtElements() {
     when(element.getClassName()).thenReturn("class"); // getClassName() is final native
-    Assert.assertEquals("class", element.getClassName());
+    Assertions.assertEquals("class", element.getClassName());
   }
 
   @Test
@@ -275,7 +279,7 @@ public class GwtMockitoTest {
     uiBinder.createAndBindUi(owner);
 
     when(owner.uiField.getClassName()).thenReturn("class");
-    Assert.assertEquals("class", owner.uiField.getClassName());
+    Assertions.assertEquals("class", owner.uiField.getClassName());
   }
 
   @Test
@@ -368,7 +372,7 @@ public class GwtMockitoTest {
   @Test
   public void shouldMockPackagePrivateClasses() throws Exception {
     when(packagePrivateClass.doStuff()).thenReturn("mocked");
-    Assert.assertEquals("mocked", packagePrivateClass.doStuff());
+    Assertions.assertEquals("mocked", packagePrivateClass.doStuff());
   }
 
   @Test
@@ -539,7 +543,7 @@ public class GwtMockitoTest {
   @Test
   public void assertThatShouldWork() {
     // This fails when org.hamcrest isn't added to the package excludelist
-    Assert.assertThat("123", CoreMatchers.containsString("12"));
+    MatcherAssert.assertThat("123", CoreMatchers.containsString("12"));
   }
 
   @Test

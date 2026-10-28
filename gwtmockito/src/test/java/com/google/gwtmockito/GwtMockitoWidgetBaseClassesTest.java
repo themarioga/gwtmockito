@@ -41,8 +41,8 @@ import com.google.gwt.user.client.ui.UIObject;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Method;
@@ -51,7 +51,7 @@ import java.lang.reflect.Method;
  * Tests confirming that GwtMockito works with a wide range of potential base classes for widgets by
  * checking that every method on the base classes can be invoked without exception.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 public class GwtMockitoWidgetBaseClassesTest {
 
   @Test

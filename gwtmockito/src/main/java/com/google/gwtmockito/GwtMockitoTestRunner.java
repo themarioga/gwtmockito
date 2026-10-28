@@ -17,50 +17,16 @@
  */
 package com.google.gwtmockito;
 
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtConstructor;
-import javassist.CtMethod;
-import javassist.Loader;
-import javassist.LoaderClassPath;
-import javassist.NotFoundException;
-import javassist.Translator;
-import javassist.bytecode.AccessFlag;
-
-import com.google.gwt.user.cellview.client.CellList;
-import com.google.gwt.user.cellview.client.CellTable;
-import com.google.gwt.user.cellview.client.DataGrid;
 import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.ui.AbsolutePanel;
-import com.google.gwt.user.client.ui.CellPanel;
-import com.google.gwt.user.client.ui.ComplexPanel;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.DeckLayoutPanel;
-import com.google.gwt.user.client.ui.DeckPanel;
-import com.google.gwt.user.client.ui.DecoratorPanel;
-import com.google.gwt.user.client.ui.DockLayoutPanel;
-import com.google.gwt.user.client.ui.DockPanel;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.FocusPanel;
-import com.google.gwt.user.client.ui.HTMLPanel;
-import com.google.gwt.user.client.ui.HTMLTable;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.LayoutPanel;
 import com.google.gwt.user.client.ui.Panel;
-import com.google.gwt.user.client.ui.PopupPanel;
-import com.google.gwt.user.client.ui.RenderablePanel;
-import com.google.gwt.user.client.ui.ResizeLayoutPanel;
-import com.google.gwt.user.client.ui.SimpleLayoutPanel;
-import com.google.gwt.user.client.ui.SimplePanel;
-import com.google.gwt.user.client.ui.SplitLayoutPanel;
-import com.google.gwt.user.client.ui.StackPanel;
 import com.google.gwt.user.client.ui.UIObject;
-import com.google.gwt.user.client.ui.ValueListBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwtmockito.impl.StubGenerator;
+import com.google.gwtmockito.impl.GwtMockitoClassLoader;
+import com.google.gwtmockito.impl.GwtMockitoDefaults;
+
+import javassist.ClassPool;
 
 import org.junit.runner.Description;
 import org.junit.runner.Result;
@@ -75,7 +41,6 @@ import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -109,7 +74,10 @@ import java.util.List;
  *
  * @see GwtMockito
  * @author ekuefler@google.com (Erik Kuefler)
+ * @deprecated JUnit 4 support is kept for existing suites. New tests should use
+ *     {@link GwtMockitoExtension} with JUnit Jupiter, which provides the same behaviour.
  */
+@Deprecated(since = "2.0.0")
 public class GwtMockitoTestRunner extends BlockJUnit4ClassRunner {
 
   private final Class<?> unitTestClass;
@@ -126,16 +94,11 @@ public class GwtMockitoTestRunner extends BlockJUnit4ClassRunner {
 
     // Build a fresh class pool with the system path and any user-specified paths and use it to
     // create the custom classloader
-    ClassPool classPool = new ClassPool();
-    classPool.appendClassPath(new LoaderClassPath(getParentClassloader()));
-    for (String path : getAdditionalClasspaths()) {
-      try {
-        classPool.appendClassPath(path);
-      } catch (NotFoundException e) {
-        throw new IllegalStateException("Cannot find classpath entry: " + path, e);
-      }
-    }
-    gwtMockitoClassLoader = new GwtMockitoClassLoader(getParentClassloader(), classPool);
+    gwtMockitoClassLoader = GwtMockitoClassLoader.create(
+        getParentClassloader(),
+        getAdditionalClasspaths(),
+        this::getClassesToStub,
+        this::getPackagesToLoadViaStandardClassloader);
 
     // Use this custom classloader as the context classloader during the rest of the initialization
     // process so that classes loaded via the context classloader will be compatible with the ones
@@ -193,40 +156,7 @@ public class GwtMockitoTestRunner extends BlockJUnit4ClassRunner {
    * @return a collection of classes whose methods should be stubbed with no-ops while running tests
    */
   protected Collection<Class<?>> getClassesToStub() {
-    Collection<Class<?>> classes = new ArrayList<>(Arrays.asList(
-        Composite.class,
-        DOM.class,
-        UIObject.class,
-        Widget.class,
-        DataGrid.class,
-        HTMLTable.class,
-        Image.class,
-        AbsolutePanel.class,
-        CellList.class,
-        CellPanel.class,
-        CellTable.class,
-        ComplexPanel.class,
-        DeckLayoutPanel.class,
-        DeckPanel.class,
-        DecoratorPanel.class,
-        DockLayoutPanel.class,
-        DockPanel.class,
-        FlowPanel.class,
-        FocusPanel.class,
-        HorizontalPanel.class,
-        HTMLPanel.class,
-        LayoutPanel.class,
-        Panel.class,
-        PopupPanel.class,
-        RenderablePanel.class,
-        ResizeLayoutPanel.class,
-        SimpleLayoutPanel.class,
-        SimplePanel.class,
-        SplitLayoutPanel.class,
-        StackPanel.class,
-        VerticalPanel.class,
-        ValueListBox.class
-    ));
+    Collection<Class<?>> classes = GwtMockitoDefaults.classesToStub();
 
     WithClassesToStub annotation = unitTestClass.getAnnotation(WithClassesToStub.class);
     if (annotation != null) {
@@ -259,17 +189,7 @@ public class GwtMockitoTestRunner extends BlockJUnit4ClassRunner {
    *         string in the collection will always be loaded via the system classloader
    */
   protected Collection<String> getPackagesToLoadViaStandardClassloader() {
-    Collection<String> packages = new ArrayList<>(Arrays.asList(
-        "com.vladium",           // To support EMMA code coverage tools
-        "jdk.internal.reflect",  // Java 9+ loading mechanism
-        "net.bytebuddy",         // Required by Mockito 5's InlineByteBuddyMockMaker
-        "net.sf.cglib",          // To support Mockito 1
-        "net.sourceforge.cobertura", // To support Cobertura code coverage tools
-        "org.jacoco",            // To support JaCoCo code coverage tools
-        "org.hamcrest",          // Since this package is referenced directly from org.junit
-        "org.junit",             // Make sure the ParentRunner can recognize annotations like @Test
-        "org.mockito"            // Mockito 5 injects MockMethodDispatcher via agent; must not be re-loaded by Javassist
-    ));
+    Collection<String> packages = GwtMockitoDefaults.packagesToLoadViaStandardClassloader();
 
     WithPackagesToLoadViaStandardClassLoader annotation = unitTestClass.getAnnotation(WithPackagesToLoadViaStandardClassLoader.class);
     if (annotation != null) {
@@ -437,117 +357,6 @@ public class GwtMockitoTestRunner extends BlockJUnit4ClassRunner {
         if (primary != null) throw primary;
       }
     };
-  }
-
-  /** Custom classloader that performs additional modifications to loaded classes. */
-  private final class GwtMockitoClassLoader extends Loader implements Translator {
-
-    GwtMockitoClassLoader(ClassLoader classLoader, ClassPool classPool) {
-      super(classLoader == null ? GwtMockitoTestRunner.class.getClassLoader() : classLoader, classPool);
-      try {
-        addTranslator(classPool, this);
-        setDomain(getClass().getProtectionDomain());
-      } catch (NotFoundException e) {
-        throw new AssertionError("Impossible since this.start does not throw");
-      } catch (CannotCompileException e) {
-        throw new AssertionError("Impossible since this.start does not throw");
-      }
-    }
-
-    @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
-      // If the class is in a blacklisted package, load it with the parent or default classloader.
-      for (String blacklistedPackage : getPackagesToLoadViaStandardClassloader()) {
-        if (name.startsWith(blacklistedPackage)) {
-          return null;
-        }
-      }
-
-      // Otherwise load it with our custom classloader.
-      return super.findClass(name);
-    }
-
-    @Override
-    public void onLoad(ClassPool pool, String name)
-        throws NotFoundException, CannotCompileException {
-      CtClass clazz = pool.get(name);
-
-      // Strip final accessFlag from the class and all methods to allow them to be mocked
-      clazz.getClassFile().setAccessFlags(clazz.getClassFile().getAccessFlags() & ~AccessFlag.FINAL);
-      for (CtMethod method : clazz.getDeclaredMethods()) {
-        method.setModifiers(method.getModifiers() & ~Modifier.FINAL);
-      }
-
-      // Compute classesToStub once per class load — getClassesToStub() may be overridden
-      // by subclasses and allocates a new collection on every call. Caching it here avoids
-      // calling it once per method (potentially dozens of times for large GWT widget classes).
-      Collection<Class<?>> classesToStub = getClassesToStub();
-
-      // Create stub implementations for certain methods
-      for (CtMethod method : clazz.getDeclaredMethods()) {
-        if (StubGenerator.shouldStub(method, classesToStub)) {
-          method.setModifiers(method.getModifiers() & ~Modifier.NATIVE);
-          CtClass returnType = method.getReturnType();
-          // TODO(ekuefler): Handle primitives, voids, and enums in StubGenerator
-          if (returnType.isPrimitive() || returnType.getName().equals("void")) {
-            method.setBody(null);
-          } else if (returnType.isEnum()) {
-            method.setBody(String.format("return %s.values()[0];", returnType.getName()));
-          } else {
-            method.setBody(String.format(
-                "return (%s) com.google.gwtmockito.impl.StubGenerator.invoke("
-                    + "Class.forName(\"%s\"), \"%s\", \"%s\");",
-                method.getReturnType().getName(),
-                method.getReturnType().getName(),
-                clazz.getName(),
-                method.getName()));
-          }
-        }
-      }
-
-      // Also stub certain constructors
-      for (Class<?> classToStub : classesToStub) {
-        if (classToStub.getName().equals(clazz.getName())) {
-          for (CtConstructor constructor : clazz.getConstructors()) {
-            String parameters = makeNullParameters(
-                clazz.getSuperclass().getConstructors()[0].getParameterTypes());
-            constructor.setBody("super(" + parameters + ");");
-          }
-        }
-      }
-    }
-
-    private String makeNullParameters(CtClass[] paramClasses) {
-      if (paramClasses.length == 0) {
-        return "";
-      }
-      StringBuilder params = new StringBuilder();
-      for (CtClass paramClass : paramClasses) {
-        params.append(',');
-        switch (paramClass.getName()) {
-          case "boolean" -> params.append("false");
-          case "byte"    -> params.append("(byte) 0");
-          case "char"    -> params.append("(char) 0");
-          case "double"  -> params.append("(double) 0");
-          case "int"     -> params.append("(int) 0");
-          case "float"   -> params.append("(float) 0");
-          case "long"    -> params.append("(long) 0");
-          case "short"   -> params.append("(short) 0");
-          default        -> params.append(newMockForClassSnippet(paramClass));
-        }
-      }
-      return params.substring(1);
-    }
-
-    private String newMockForClassSnippet(CtClass paramClass) {
-      return String.format(
-          "(%1$s) org.mockito.Mockito.mock("
-              + "%1$s.class, new com.google.gwtmockito.impl.ReturnsCustomMocks())",
-          paramClass.getName());
-    }
-
-    @Override
-    public void start(ClassPool pool) {}
   }
 
   private static class FailedCastException extends Exception {

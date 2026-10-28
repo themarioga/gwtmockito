@@ -15,22 +15,20 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mockStatic;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -41,10 +39,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Runnerless (JUnit4) tests for the recovery paths introduced in
+ * Runnerless (plain JUnit Jupiter) tests for the recovery paths introduced in
  * {@link GwtMockito#openMocksWithObjectFieldFix} and {@link GwtMockito#recoverInjection}.
  *
- * <p>Running under plain JUnit4 (not {@link GwtMockitoTestRunner}) means JaCoCo can instrument
+ * <p>Running under plain JUnit Jupiter (not {@link GwtMockitoExtension}) means JaCoCo can instrument
  * the production class directly, covering lines that the Javassist-classloader tests cannot reach.
  *
  * <p>Covered lines:
@@ -61,7 +59,6 @@ import java.lang.reflect.Method;
  *       {@code recoverInjection} invocation with a pre-populated {@code ScopedMock} field.</li>
  * </ul>
  */
-@RunWith(JUnit4.class)
 public class GwtMockitoRecoveryPathTest {
 
   // ── helpers ────────────────────────────────────────────────────────────────
@@ -121,8 +118,7 @@ public class GwtMockitoRecoveryPathTest {
 
   @Test
   public void isTypeVariableImplCastException_trueForRealMockitoFrame() throws Exception {
-    assertTrue("real TypeVariableImpl CCE with TypeBasedCandidateFilter frame must return true",
-        callIsTypeVariableImplCastException(realTypeVariableImplCce()));
+    assertTrue(callIsTypeVariableImplCastException(realTypeVariableImplCce()), "real TypeVariableImpl CCE with TypeBasedCandidateFilter frame must return true");
   }
 
   @Test
@@ -132,8 +128,7 @@ public class GwtMockitoRecoveryPathTest {
         new StackTraceElement(TYPE_BASED_FILTER_CLASS, "isCompatibleTypes",
             "TypeBasedCandidateFilter.java", 42),
     });
-    assertFalse("CCE without TypeVariableImpl in message must return false",
-        callIsTypeVariableImplCastException(cce));
+    assertFalse(callIsTypeVariableImplCastException(cce), "CCE without TypeVariableImpl in message must return false");
   }
 
   @Test
@@ -148,8 +143,7 @@ public class GwtMockitoRecoveryPathTest {
     cce.setStackTrace(new StackTraceElement[]{
         new StackTraceElement("com.myapp.SomeOtherClass", "someMethod", "SomeOtherClass.java", 10),
     });
-    assertFalse("CCE with TypeVariableImpl message but wrong frame must return false",
-        callIsTypeVariableImplCastException(cce));
+    assertFalse(callIsTypeVariableImplCastException(cce), "CCE with TypeVariableImpl message but wrong frame must return false");
   }
 
   // ── end-to-end: CCE recovery path ─────────────────────────────────────────
@@ -184,10 +178,9 @@ public class GwtMockitoRecoveryPathTest {
       AutoCloseable closeable = (AutoCloseable) recoverInjection.invoke(
           null, owner, realTypeVariableImplCce());
 
-      assertNotNull("recoverInjection must return a non-null closeable", closeable);
-      assertNotNull("recoverInjection must construct the null target", owner.target);
-      assertSame("recoverInjection must inject collaborator by name",
-          owner.collaborator, owner.target.collaborator);
+      assertNotNull(closeable, "recoverInjection must return a non-null closeable");
+      assertNotNull(owner.target, "recoverInjection must construct the null target");
+      assertSame(owner.collaborator, owner.target.collaborator, "recoverInjection must inject collaborator by name");
       closeable.close();
     } finally {
       mocks.close();
@@ -324,9 +317,9 @@ public class GwtMockitoRecoveryPathTest {
     AmbiguityOwner owner = new AmbiguityOwner();
     GwtMockito.initMocks(owner);
     GwtMockito.tearDown();
-    assertNotNull("view must not be null after recovery", owner.view);
-    assertSame("label must be injected by name", owner.label, owner.view.label);
-    assertSame("textBox must be injected by name", owner.textBox, owner.view.textBox);
+    assertNotNull(owner.view, "view must not be null after recovery");
+    assertSame(owner.label, owner.view.label, "label must be injected by name");
+    assertSame(owner.textBox, owner.view.textBox, "textBox must be injected by name");
   }
 
   static class OwnerWithScopedMockAndInjectMocks {
@@ -362,12 +355,12 @@ public class GwtMockitoRecoveryPathTest {
 
   // ── lifecycle ──────────────────────────────────────────────────────────────
 
-  @Before
+  @BeforeEach
   public void setUp() {
     // Each test manages initMocks/tearDown explicitly.
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     GwtMockito.tearDown(); // idempotent no-op if already closed
   }

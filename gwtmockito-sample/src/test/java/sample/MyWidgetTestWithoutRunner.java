@@ -15,7 +15,7 @@
  */
 package sample;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,29 +24,26 @@ import com.google.gwt.user.client.ui.HasText;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMock;
 import com.google.gwtmockito.GwtMockito;
-import com.google.gwtmockito.GwtMockitoTestRunner;
+import com.google.gwtmockito.GwtMockitoExtension;
 import com.google.gwtmockito.fakes.FakeProvider;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import sample.MyWidget.DataProvider;
 
 /**
- * Test for {@link MyWidget} that doesn't use {@link GwtMockitoTestRunner}. Most
+ * Test for {@link MyWidget} that doesn't use {@link GwtMockitoExtension}. Most
  * things will still work, though it gets a bit more verbose. Most tests should
- * look like {@link MyWidgetTest} instead.
+ * look like {@link MyWidgetJupiterTest} instead.
  */
-@RunWith(JUnit4.class)
 public class MyWidgetTestWithoutRunner {
 
   @GwtMock private DataProvider dataProvider;
 
   private MyWidget widget;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     GwtMockito.initMocks(this);
     widget = new MyWidget() {

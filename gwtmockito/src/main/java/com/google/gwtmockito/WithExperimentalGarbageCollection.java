@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  *
  * <p> Without this annotation, if a test uses a ThreadLocal object load through GwtMockitoClassLoader
  * and stored in the test runner thread context, the garbage collection of the GwtMockitoClassLoader
- * will be prevented.
+ * will be prevented. Honoured by both {@link GwtMockitoExtension} and {@link GwtMockitoTestRunner}.
  *
  * <p> Note: the memory leak issue and this experimental garbage collection fix is dependent of the JVM
  * (observed with the OpenJDK). It will raise an AssertionError on uncompatible JVM.

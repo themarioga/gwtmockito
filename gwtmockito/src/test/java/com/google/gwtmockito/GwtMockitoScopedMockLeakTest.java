@@ -15,15 +15,13 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.ScopedMock;
 
@@ -45,7 +43,6 @@ import java.util.Map;
  * same owner without triggering an unrelated Mockito 5 limitation in
  * {@code MockScanner}.
  */
-@RunWith(JUnit4.class)
 public class GwtMockitoScopedMockLeakTest {
 
   // ── owner classes ──────────────────────────────────────────────────────────
@@ -88,14 +85,14 @@ public class GwtMockitoScopedMockLeakTest {
 
     List<ScopedMock> result = collectScopedMocks(owner);
 
-    assertTrue("ScopedMock field must be collected", result.contains(scoped));
-    assertFalse("Plain Object field must not be collected", result.size() > 1);
+    assertTrue(result.contains(scoped), "ScopedMock field must be collected");
+    assertFalse(result.size() > 1, "Plain Object field must not be collected");
   }
 
   @Test
   public void collectScopedMocks_returnsEmptyForOwnerWithNoMocks() throws Exception {
     List<ScopedMock> result = collectScopedMocks(new OwnerWithNoMocks());
-    assertTrue("No @Mock fields → empty list", result.isEmpty());
+    assertTrue(result.isEmpty(), "No @Mock fields → empty list");
   }
 
   @Test
@@ -105,7 +102,7 @@ public class GwtMockitoScopedMockLeakTest {
     OwnerWithPlainMockOnly.class.getDeclaredField("plain").set(owner, new Object());
 
     List<ScopedMock> result = collectScopedMocks(owner);
-    assertTrue("Only plain mocks → empty list", result.isEmpty());
+    assertTrue(result.isEmpty(), "Only plain mocks → empty list");
   }
 
   @Test
@@ -170,12 +167,11 @@ public class GwtMockitoScopedMockLeakTest {
     // final field must not have been written — isFinal guard must have skipped it.
     Field immutableField = TargetWithFinalField.class.getDeclaredField("immutable");
     immutableField.setAccessible(true);
-    assertNull("final field must not be overwritten by injectMocksIntoTarget",
-        immutableField.get(target));
+    assertNull(immutableField.get(target), "final field must not be overwritten by injectMocksIntoTarget");
 
     // non-final field must have been injected normally.
     Field mutableField = TargetWithFinalField.class.getDeclaredField("mutable");
     mutableField.setAccessible(true);
-    assertTrue("mutable field must be injected", mutableField.get(target) == injectedMock);
+    assertTrue(mutableField.get(target) == injectedMock, "mutable field must be injected");
   }
 }
