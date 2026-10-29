@@ -31,12 +31,12 @@ import java.lang.annotation.Target;
  * An example usage follows:
  *
  * <pre>
- * &#064;RunWith(GwtMockitoTestRunner.class)
+ * &#064;ExtendWith(GwtMockitoExtension.class)
  * &#064;WithClassesToStub({ClassToStub.class})
- * public class MyTest {
+ * class MyTest {
  *
  *   &#064;Test
- *   public void shouldStubClass() {
+ *   void shouldStubClass() {
  *     // The stubbed class will return an empty string instead of throwing an exception
  *     assertEquals(&quot;&quot;, new ClassToStub().doSomething());
  *   }
@@ -50,9 +50,9 @@ import java.lang.annotation.Target;
  * </pre>
  * <p>
  * Note that if you have a set of classes that need to be stubbed in every class, you might be
- * better off implementing your own subclass of {@link GwtMockitoTestRunner} that overrides
- * {@link GwtMockitoTestRunner#getClassesToStub} so that you don't have to duplicate the annotation
- * in every test.
+ * better off implementing your own subclass of {@link GwtMockitoExtension} that overrides
+ * {@link GwtMockitoExtension#getClassesToStub} (or, with JUnit 4, of {@link GwtMockitoTestRunner})
+ * so that you don't have to duplicate the annotation in every test.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

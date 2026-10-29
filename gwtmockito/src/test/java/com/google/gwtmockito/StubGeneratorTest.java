@@ -15,14 +15,12 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gwtmockito.impl.StubGenerator;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -40,7 +38,6 @@ import java.lang.reflect.Method;
  *
  * <p>{@code ClassAndMethod} is private, so it is accessed via reflection.
  */
-@RunWith(JUnit4.class)
 public class StubGeneratorTest {
 
   // ── reflection helpers ──────────────────────────────────────────────────
@@ -75,35 +72,34 @@ public class StubGeneratorTest {
   @Test
   public void classAndMethodEquals_falseForNull() throws Exception {
     Object cam = newClassAndMethod("com.example.Foo", "bar");
-    assertFalse("equals(null) must return false", invokeEquals(cam, null));
+    assertFalse(invokeEquals(cam, null), "equals(null) must return false");
   }
 
   @Test
   public void classAndMethodEquals_falseForDifferentType() throws Exception {
     Object cam = newClassAndMethod("com.example.Foo", "bar");
-    assertFalse("equals(String) must return false", invokeEquals(cam, "com.example.Foo#bar"));
+    assertFalse(invokeEquals(cam, "com.example.Foo#bar"), "equals(String) must return false");
   }
 
   @Test
   public void classAndMethodEquals_trueForSameClassAndMethod() throws Exception {
     Object cam1 = newClassAndMethod("com.example.Foo", "bar");
     Object cam2 = newClassAndMethod("com.example.Foo", "bar");
-    assertTrue("two identical ClassAndMethod instances must be equal", invokeEquals(cam1, cam2));
+    assertTrue(invokeEquals(cam1, cam2), "two identical ClassAndMethod instances must be equal");
   }
 
   @Test
   public void classAndMethodEquals_falseForDifferentMethod() throws Exception {
     Object cam1 = newClassAndMethod("com.example.Foo", "bar");
     Object cam2 = newClassAndMethod("com.example.Foo", "baz");
-    assertFalse("different method names must not be equal", invokeEquals(cam1, cam2));
+    assertFalse(invokeEquals(cam1, cam2), "different method names must not be equal");
   }
 
   @Test
   public void classAndMethodHashCode_consistentWithEquals() throws Exception {
     Object cam1 = newClassAndMethod("com.example.Foo", "bar");
     Object cam2 = newClassAndMethod("com.example.Foo", "bar");
-    assertTrue("equal objects must have the same hashCode",
-        invokeHashCode(cam1) == invokeHashCode(cam2));
+    assertTrue(invokeHashCode(cam1) == invokeHashCode(cam2), "equal objects must have the same hashCode");
   }
 
   @Test
@@ -111,7 +107,6 @@ public class StubGeneratorTest {
     // invoke() for an unknown returnType falls through to Mockito.mock — ensure
     // it returns a non-null value without throwing.
     Object result = StubGenerator.invoke(Runnable.class, "some.Unknown", "unknownMethod");
-    assertTrue("invoke on unknown method must return a Runnable mock",
-        result instanceof Runnable);
+    assertTrue(result instanceof Runnable, "invoke on unknown method must return a Runnable mock");
   }
 }

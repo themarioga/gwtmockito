@@ -15,19 +15,17 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
 
 import org.gwtproject.fixture.GwtprojectFixture;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
@@ -47,17 +45,16 @@ import java.lang.reflect.Method;
  * <p>All helpers are tested via reflection so that this file does not grow a public API that
  * should not exist.
  */
-@RunWith(JUnit4.class)
 public class GwtMockitoInternalsTest {
 
   // ── tearDown idempotency ──────────────────────────────────────────────────
 
-  @Before
+  @BeforeEach
   public void setUp() {
     GwtMockito.initMocks(this);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     GwtMockito.tearDown();
   }
@@ -83,31 +80,26 @@ public class GwtMockitoInternalsTest {
   @Test
   public void isGwtBaseClass_recognisesComGoogleGwtPrefix() throws Exception {
     // Widget lives in com.google.gwt.user.client.ui — must be recognised.
-    assertTrue("com.google.gwt.* classes must be GWT base classes",
-        isGwtBaseClass(Widget.class));
+    assertTrue(isGwtBaseClass(Widget.class), "com.google.gwt.* classes must be GWT base classes");
   }
 
   @Test
   public void isGwtBaseClass_recognisesOrgGwtprojectPrefix() throws Exception {
     // GwtprojectFixture is declared in org.gwtproject.fixture — a real class in the
     // org.gwtproject.* namespace, so isGwtBaseClass must return true.
-    assertTrue("class in org.gwtproject.* must be a GWT base class",
-        isGwtBaseClass(GwtprojectFixture.class));
+    assertTrue(isGwtBaseClass(GwtprojectFixture.class), "class in org.gwtproject.* must be a GWT base class");
   }
 
   @Test
   public void isGwtBaseClass_falseForNonGwtClass() throws Exception {
-    assertFalse("java.lang.String must not be a GWT base class",
-        isGwtBaseClass(String.class));
-    assertFalse("a class in com.google.gwtmockito must not be a GWT base class",
-        isGwtBaseClass(GwtMockitoInternalsTest.class));
+    assertFalse(isGwtBaseClass(String.class), "java.lang.String must not be a GWT base class");
+    assertFalse(isGwtBaseClass(GwtMockitoInternalsTest.class), "a class in com.google.gwtmockito must not be a GWT base class");
   }
 
   @Test
   public void isGwtBaseClass_compositeIsGwtBase() throws Exception {
     // Composite is in com.google.gwt.user.client.ui — must match.
-    assertTrue("Composite must be recognised as a GWT base class",
-        isGwtBaseClass(Composite.class));
+    assertTrue(isGwtBaseClass(Composite.class), "Composite must be recognised as a GWT base class");
   }
 
   // ── hasInjectMocksField ───────────────────────────────────────────────────
@@ -139,21 +131,18 @@ public class GwtMockitoInternalsTest {
 
   @Test
   public void hasInjectMocksField_trueWhenFieldPresent() throws Exception {
-    assertTrue("Owner with @InjectMocks must return true",
-        hasInjectMocksField(new OwnerWithInjectMocks()));
+    assertTrue(hasInjectMocksField(new OwnerWithInjectMocks()), "Owner with @InjectMocks must return true");
   }
 
   @Test
   public void hasInjectMocksField_falseWhenNoAnnotation() throws Exception {
-    assertFalse("Owner without @InjectMocks must return false",
-        hasInjectMocksField(new OwnerWithoutInjectMocks()));
+    assertFalse(hasInjectMocksField(new OwnerWithoutInjectMocks()), "Owner without @InjectMocks must return false");
   }
 
   @Test
   public void hasInjectMocksField_trueWhenAnnotationOnSuperclass() throws Exception {
     // The walk must climb the hierarchy to find @InjectMocks declared on the base class.
-    assertTrue("@InjectMocks on superclass must still return true from subclass instance",
-        hasInjectMocksField(new SubOwnerNoInjectMocks()));
+    assertTrue(hasInjectMocksField(new SubOwnerNoInjectMocks()), "@InjectMocks on superclass must still return true from subclass instance");
   }
 
   // ── hasInjectMocksTargetExtendingGwtBase ──────────────────────────────────
@@ -188,27 +177,23 @@ public class GwtMockitoInternalsTest {
 
   @Test
   public void hasInjectMocksTargetExtendingGwtBase_trueForDirectGwtTarget() throws Exception {
-    assertTrue("Composite target must be detected as GWT base",
-        hasInjectMocksTargetExtendingGwtBase(new OwnerWithGwtTarget()));
+    assertTrue(hasInjectMocksTargetExtendingGwtBase(new OwnerWithGwtTarget()), "Composite target must be detected as GWT base");
   }
 
   @Test
   public void hasInjectMocksTargetExtendingGwtBase_falseForPlainTarget() throws Exception {
-    assertFalse("Plain (non-GWT) target must return false",
-        hasInjectMocksTargetExtendingGwtBase(new OwnerWithPlainTarget()));
+    assertFalse(hasInjectMocksTargetExtendingGwtBase(new OwnerWithPlainTarget()), "Plain (non-GWT) target must return false");
   }
 
   @Test
   public void hasInjectMocksTargetExtendingGwtBase_trueForIndirectGwtTarget() throws Exception {
     // UserWidget extends Widget (a GWT base class) — the superclass walk must find it.
-    assertTrue("Target that transitively extends Widget must return true",
-        hasInjectMocksTargetExtendingGwtBase(new OwnerWithUserWidgetTarget()));
+    assertTrue(hasInjectMocksTargetExtendingGwtBase(new OwnerWithUserWidgetTarget()), "Target that transitively extends Widget must return true");
   }
 
   @Test
   public void hasInjectMocksTargetExtendingGwtBase_falseForNoInjectMocksField() throws Exception {
-    assertFalse("Owner with no @InjectMocks field must return false",
-        hasInjectMocksTargetExtendingGwtBase(new OwnerWithoutInjectMocks()));
+    assertFalse(hasInjectMocksTargetExtendingGwtBase(new OwnerWithoutInjectMocks()), "Owner with no @InjectMocks field must return false");
   }
 
   // ── isMockField ──────────────────────────────────────────────────────────
@@ -230,25 +215,25 @@ public class GwtMockitoInternalsTest {
   @Test
   public void isMockField_trueForMockAnnotatedField() throws Exception {
     java.lang.reflect.Field f = HolderWithMock.class.getDeclaredField("mockField");
-    assertTrue("@Mock field must return true", isMockField(f));
+    assertTrue(isMockField(f), "@Mock field must return true");
   }
 
   @Test
   public void isMockField_trueForGwtMockAnnotatedField() throws Exception {
     java.lang.reflect.Field f = HolderWithMock.class.getDeclaredField("gwtMockField");
-    assertTrue("@GwtMock field must return true", isMockField(f));
+    assertTrue(isMockField(f), "@GwtMock field must return true");
   }
 
   @Test
   public void isMockField_falseForPlainField() throws Exception {
     java.lang.reflect.Field f = HolderWithMock.class.getDeclaredField("plainField");
-    assertFalse("Unannotated field must return false", isMockField(f));
+    assertFalse(isMockField(f), "Unannotated field must return false");
   }
 
   @Test
   public void isMockField_falseForInjectMocksField() throws Exception {
     java.lang.reflect.Field f = OwnerWithInjectMocks.class.getDeclaredField("view");
     // @InjectMocks must NOT trigger isMockField — only @Mock / @GwtMock should.
-    assertFalse("@InjectMocks field must return false from isMockField", isMockField(f));
+    assertFalse(isMockField(f), "@InjectMocks field must return false from isMockField");
   }
 }

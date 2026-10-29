@@ -17,8 +17,9 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 
 import com.google.gwt.core.shared.GWT;
@@ -30,29 +31,26 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.fakes.FakeProvider;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link GwtMockito} when not running with
- * {@link GwtMockitoTestRunner}, as would be the case for JUnit3 or in tests
- * that must use a different runner.
+ * {@link GwtMockitoExtension} or {@link GwtMockitoTestRunner}, as would be the case
+ * for JUnit3 or in tests that must use a different runner or extension.
  */
-@RunWith(JUnit4.class)
 public class GwtMockitoRunnerlessTest {
 
   @GwtMock SampleInterface mockedInterface;
   private static final SampleMessages MESSAGES = GwtMockito.getFake(SampleMessages.class);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     GwtMockito.initMocks(this);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     GwtMockito.tearDown();
   }
@@ -93,10 +91,10 @@ public class GwtMockitoRunnerlessTest {
     assertEquals("some value", result.doSomethingElse());
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void shouldRestoreGwtCreateAfterTearDown() {
     GwtMockito.tearDown();
-    GWT.create(SampleInterface.class);
+    assertThrows(UnsupportedOperationException.class, () -> GWT.create(SampleInterface.class));
   }
 
   @Test
@@ -109,7 +107,7 @@ public class GwtMockitoRunnerlessTest {
     // subsequent tests is the observable guarantee.
     GwtMockito.initMocks(this); // second call — must not throw and must not leak
     SampleInterface createdInterface = GWT.create(SampleInterface.class);
-    assertNotNull("GWT.create must still work after double initMocks", createdInterface);
+    assertNotNull(createdInterface, "GWT.create must still work after double initMocks");
     // tearDown() in @After closes the session opened by this second initMocks call.
   }
 

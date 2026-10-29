@@ -15,11 +15,11 @@
  */
 package com.google.gwtmockito;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
@@ -39,7 +39,7 @@ import org.mockito.Mock;
  * it).  A plain no-arg constructor would allow Mockito's own property injection to set the field
  * directly, making the fallback invisible to the assertion.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 public class GwtMockitoSuccessPathInjectionTest {
 
   /** A plain collaborator interface — no GWT base class, so openMocks() never throws. */
@@ -67,8 +67,7 @@ public class GwtMockitoSuccessPathInjectionTest {
   public void testSuccessPathInjectIntoAllTargetsFillsCollaboratorField() {
     // openMocks() succeeds without throwing (no GWT base class ambiguity present).
     // GwtMockito's success-path injectIntoAllTargets() must fill view.collaborator.
-    assertNotNull("view must not be null", view);
-    assertSame("collaborator must be injected into PlainView.collaborator by name",
-        collaborator, view.collaborator);
+    assertNotNull(view, "view must not be null");
+    assertSame(collaborator, view.collaborator, "collaborator must be injected into PlainView.collaborator by name");
   }
 }

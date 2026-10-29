@@ -15,14 +15,14 @@
  */
 package com.google.gwtmockito;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * This test exists to ensure that it's possible to load multiple tests using
- * {@link GwtMockitoTestRunner} in the same suite without them conflicting.
+ * {@link GwtMockitoExtension} in the same suite without them conflicting.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 public class GwtMockitoTautologyTest {
   @Test
   public void testTautology() {}

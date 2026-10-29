@@ -13,46 +13,56 @@ probably run into this error:
 GwtMockito solves this and other GWT-related testing problems by allowing you
 to call GWT.create from JUnit tests, returning [Mockito][1] mocks.
 
-> **This is the YCM fork** of the original [google/gwtmockito][orig], which is
-> no longer maintained. This fork modernizes the project with:
-> - **Mockito 5.23.0** compatibility (replaces 1.x)
+> **This is a fork of a fork.** The original [google/gwtmockito][orig] is no
+> longer maintained. [yesamer/gwtmockito][ycm] (the YCM fork) modernized it, and
+> this repository builds on that work:
+>
+> google/gwtmockito → yesamer/gwtmockito → **themarioga/gwtmockito**
+>
+> Added by the YCM fork:
+> - **Mockito 5** compatibility (replaces 1.x)
 > - **GWT 2.13.1** (`org.gwtproject`) — replaces the archived `com.google.gwt` 2.8.0
 > - **Java 17** source/target
 > - Full Mockito session lifecycle management (`openMocks` / `tearDown`)
 > - Automatic recovery from Mockito 5's `@InjectMocks` ambiguity errors on GWT base classes
+>
+> Added by this fork:
+> - **JUnit 5 (Jupiter)** support via `GwtMockitoExtension`, built on JUnit 6
+> - Publication to **Maven Central** as `io.github.themarioga:gwtmockito`
+> - `GwtMockitoTestRunner` deprecated; `junit:junit` no longer a transitive dependency
 
 ## How do I install it?
 
-Build from source and install to your local Maven repository:
-
-```bash
-git clone https://github.com/yesamer/gwtmockito.git
-cd gwtmockito
-mvn install -DskipTests
-```
-
-Then add the dependency to your project:
+GwtMockito is published to Maven Central:
 
 ```xml
 <dependency>
-  <groupId>com.google.gwt.gwtmockito</groupId>
+  <groupId>io.github.themarioga</groupId>
   <artifactId>gwtmockito</artifactId>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.0.0</version>
   <scope>test</scope>
 </dependency>
 ```
 
+The Java packages are still `com.google.gwtmockito`, so code written for the
+original GwtMockito only needs the new Maven coordinates. Don't put
+`com.google.gwt.gwtmockito:gwtmockito` on the same classpath: both artifacts
+contain the same classes.
+
+`junit:junit` is no longer a transitive dependency. If you keep using the JUnit 4
+runner, declare JUnit 4 in your own project.
+
 ## How do I use it?
 
-Getting started with GwtMockito using JUnit 4.5+ is easy. Just annotate your test
-with `@RunWith(GwtMockitoTestRunner.class)`, then any calls to `GWT.create`
+Getting started with GwtMockito using JUnit 5 is easy. Just annotate your test
+with `@ExtendWith(GwtMockitoExtension.class)`, then any calls to `GWT.create`
 encountered will return Mockito mocks instead of throwing exceptions:
 
 ```java
-@RunWith(GwtMockitoTestRunner.class)
-public class MyTest {
+@ExtendWith(GwtMockitoExtension.class)
+class MyTest {
   @Test
-  public void shouldReturnMocksFromGwtCreate() {
+  void shouldReturnMocksFromGwtCreate() {
     Label myLabel = GWT.create(Label.class);
     when(myLabel.getText()).thenReturn("some text");
     assertEquals("some text", myLabel.getText());
@@ -88,19 +98,19 @@ When `createAndBindUi` is called, GwtMockito will automatically populate
 can be read from your unit tests, which lets you test this widget as follows:
 
 ```java
-@RunWith(GwtMockitoTestRunner.class)
-public class MyWidgetTest {
+@ExtendWith(GwtMockitoExtension.class)
+class MyWidgetTest {
 
   @Mock NumberFormatter formatter;
   private MyWidget widget;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     widget = new MyWidget(formatter);
   }
 
   @Test
-  public void shouldFormatNumber() {
+  void shouldFormatNumber() {
     when(formatter.format(5)).thenReturn("5.00");
     widget.setNumber(5);
     verify(widget.numberLabel).setText("5.00");
@@ -117,12 +127,12 @@ You can reference a mock returned by `GWT.create` by annotating a field with
 `@GwtMock`. For example:
 
 ```java
-@RunWith(GwtMockitoTestRunner.class)
-public class MyClassTest {
+@ExtendWith(GwtMockitoExtension.class)
+class MyClassTest {
   @GwtMock SomeInterface mockInterface;
 
   @Test
-  public void constructorShouldSetSomething() {
+  void constructorShouldSetSomething() {
     new MyClass();
     verify(mockInterface).setSomething(true);
   }
@@ -149,12 +159,12 @@ Javassist classloader, allowing `Element` and other JavaScript overlay types
 to be mocked:
 
 ```java
-@RunWith(GwtMockitoTestRunner.class)
-public class MyTest {
+@ExtendWith(GwtMockitoExtension.class)
+class MyTest {
   @Mock Element element;
 
   @Test
-  public void shouldMockFinalMethod() {
+  void shouldMockFinalMethod() {
     when(element.getClassName()).thenReturn("mockClass");
     assertEquals("mockClass", element.getClassName());
   }
@@ -169,6 +179,43 @@ GwtMockito provides no-op implementations for all native JSNI methods:
   * Methods returning primitive types return the default value (0, false, etc.)
   * Methods returning `String`s return the empty string.
   * Methods returning other objects return a mock configured with `RETURNS_MOCKS`.
+
+### Customizing the extension
+
+Use `@WithClassesToStub`, `@WithPackagesToLoadViaStandardClassLoader` and
+`@WithExperimentalGarbageCollection` on the test class, or subclass
+`GwtMockitoExtension` and override `getClassesToStub(Class<?>)`,
+`getPackagesToLoadViaStandardClassloader(Class<?>)`, `getParentClassloader()` or
+`getAdditionalClasspaths()`, then register your subclass with
+`@ExtendWith(MyGwtMockitoExtension.class)`. `@ExtendWith` on a base class is
+inherited by its subclasses.
+
+### JUnit 5 limitations
+
+The extension reloads the test class through GwtMockito's classloader and runs
+every test, lifecycle, `@ParameterizedTest`, `@RepeatedTest` and `@TestFactory`
+method on the reloaded class. As a consequence:
+
+  * `@Nested` classes, `@TestInstance(Lifecycle.PER_CLASS)` and combining the
+    extension with Mockito's `MockitoExtension` are not supported; the container
+    fails with an explicit message. `GwtMockitoExtension` already initializes
+    `@Mock` fields.
+  * Arguments of parameterized tests are created outside GwtMockito's
+    classloader. Use JDK types (primitives, `String`, collections...) and create
+    GWT objects or mocks inside the test. Arguments of GWT types or of your own
+    test classes fail the invocation (or fail in the argument factory itself, if
+    it calls `GWT.create` or mocks a GWT class).
+  * The test class constructor and field initializers run only on the reloaded
+    instance. Extensions that inject fields see the instance created by JUnit,
+    not the reloaded one; parameter injection (e.g. `TestInfo`) works.
+  * Parallel execution is not supported, since GwtMockito keeps static state.
+
+### JUnit 4 (deprecated)
+
+`GwtMockitoTestRunner` still works for existing JUnit 4 suites, but it is
+deprecated in favour of `GwtMockitoExtension`. Annotate the test with
+`@RunWith(GwtMockitoTestRunner.class)` and declare `junit:junit` yourself. On the
+JUnit Platform, run it with `junit-vintage-engine`.
 
 ### Support for JUnit 3 and other tests that can't use custom runners
 
@@ -199,10 +246,57 @@ public class MyWidgetTest extends TestCase {
 Note that when testing in this way, mocking final classes/methods and automatic
 native method stubs are not available.
 
+## Releasing
+
+Releases are published to Maven Central by `.github/workflows/release.yml` when a
+tag `vMAJOR.MINOR.PATCH` (e.g. `v2.0.0`) is pushed. Other tags, such as
+`v2.0.0-RC1`, are ignored. The workflow sets the version from the tag without
+committing it, so `main` keeps its `-SNAPSHOT` version.
+
+One-time setup:
+
+  1. Sign in to [central.sonatype.com](https://central.sonatype.com) with the
+     `themarioga` GitHub account; the `io.github.themarioga` namespace is
+     verified automatically.
+  2. Generate a user token in the Central Portal and store it as the repository
+     secrets `CENTRAL_USERNAME` and `CENTRAL_TOKEN`.
+  3. Create a GPG signing key, publish its public key to a keyserver
+     (e.g. `gpg --keyserver keys.openpgp.org --send-keys <KEY_ID>`), and store the
+     armored private key and its passphrase as `GPG_PRIVATE_KEY` and
+     `GPG_PASSPHRASE`.
+
+Anyone allowed to push tags to the repository can publish a release; restrict
+this with a tag ruleset if needed. Published versions are immutable: a tag for an
+existing version makes the workflow fail, so release a new version instead. If the
+workflow times out waiting for Central, check the deployment state in the Central
+Portal before doing anything else.
+
+To check a release build locally without uploading:
+`mvn -P release deploy -DskipUpload=true` (needs a local GPG key).
+
 ## Version history
 
-### 2.0.0 (YCM fork)
-  * Upgraded to Mockito 5.23.0.
+### 2.0.0
+
+First release of this fork, and the first release since 1.1.9. It bundles the
+unreleased work of the YCM fork (2.0.0-SNAPSHOT) with the changes made here.
+
+Changes made in this fork (themarioga/gwtmockito):
+  * Published to Maven Central as `io.github.themarioga:gwtmockito` (Java packages unchanged).
+  * New `GwtMockitoExtension` for JUnit 5 (Jupiter), built against JUnit 6, with the same
+    behaviour as the runner (see the limitations above). Supports `@ParameterizedTest`,
+    `@RepeatedTest` and `@TestFactory`; `@Nested`, `PER_CLASS` and `MockitoExtension`
+    fail with an explicit message.
+  * The shared Javassist classloader and default settings moved to the `impl` package,
+    so the runner and the extension behave the same.
+  * `GwtMockitoTestRunner` is deprecated; `junit:junit` is now an optional dependency.
+  * The `ClassCastException` hint now recognizes Mockito 5 mocks in the JUnit 5 extension.
+  * Upgraded to JUnit 6 and migrated the test suite to Jupiter (runner tests run on the
+    vintage engine).
+  * Added a GitHub Actions workflow that releases to Maven Central on `vX.Y.Z` tags.
+
+Changes inherited from the [YCM fork][ycm] (yesamer/gwtmockito):
+  * Upgraded to Mockito 5.
   * Upgraded to GWT 2.13.1 (`org.gwtproject`).
   * Upgraded to Java 17.
   * `tearDown()` now properly closes the Mockito session opened by `openMocks()`.
@@ -244,3 +338,4 @@ native method stubs are not available.
 
 [1]: https://site.mockito.org/
 [orig]: https://github.com/google/gwtmockito
+[ycm]: https://github.com/yesamer/gwtmockito

@@ -31,17 +31,17 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasText;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwtmockito.GwtMockito;
-import com.google.gwtmockito.GwtMockitoTestRunner;
+import com.google.gwtmockito.GwtMockitoExtension;
 import com.google.gwtmockito.fakes.FakeProvider;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Tests that GwtMockito works when mocking gwt-rpc RemoteServices without a corresponding
  * GwtMock-annoted field.
  */
-@RunWith(GwtMockitoTestRunner.class)
+@ExtendWith(GwtMockitoExtension.class)
 public class GwtMockitoRpcWithoutGwtMockTest {
 
   private static class MyWidget {

@@ -28,9 +28,9 @@ import java.lang.annotation.Target;
  * class with the package the error is complaining about.
  * <p>
  * Note that if you have a set of packages that must be blacklisted in every test, you might be
- * better off implementing your own subclass of {@link GwtMockitoTestRunner} that overrides
- * {@link GwtMockitoTestRunner#getPackagesToLoadViaStandardClassloader} so that you don't have to
- * duplicate the annotation in every test.
+ * better off implementing your own subclass of {@link GwtMockitoExtension} that overrides
+ * {@link GwtMockitoExtension#getPackagesToLoadViaStandardClassloader} (or, with JUnit 4, of
+ * {@link GwtMockitoTestRunner}) so that you don't have to duplicate the annotation in every test.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
