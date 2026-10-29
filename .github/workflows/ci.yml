@@ -36,4 +36,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: gwtmockito/target/site/jacoco/jacoco.xml
-          fail_ci_if_error: true
+          # Without a CODECOV_TOKEN secret the upload fails; coverage is optional.
+          fail_ci_if_error: false
