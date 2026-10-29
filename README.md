@@ -13,14 +13,23 @@ probably run into this error:
 GwtMockito solves this and other GWT-related testing problems by allowing you
 to call GWT.create from JUnit tests, returning [Mockito][1] mocks.
 
-> **This is a fork** of the original [google/gwtmockito][orig], which is
-> no longer maintained. This fork modernizes the project with:
-> - **JUnit 5 (Jupiter)** support via `GwtMockitoExtension`, built on JUnit 6
+> **This is a fork of a fork.** The original [google/gwtmockito][orig] is no
+> longer maintained. [yesamer/gwtmockito][ycm] (the YCM fork) modernized it, and
+> this repository builds on that work:
+>
+> google/gwtmockito → yesamer/gwtmockito → **themarioga/gwtmockito**
+>
+> Added by the YCM fork:
 > - **Mockito 5** compatibility (replaces 1.x)
 > - **GWT 2.13.1** (`org.gwtproject`) — replaces the archived `com.google.gwt` 2.8.0
 > - **Java 17** source/target
 > - Full Mockito session lifecycle management (`openMocks` / `tearDown`)
 > - Automatic recovery from Mockito 5's `@InjectMocks` ambiguity errors on GWT base classes
+>
+> Added by this fork:
+> - **JUnit 5 (Jupiter)** support via `GwtMockitoExtension`, built on JUnit 6
+> - Publication to **Maven Central** as `io.github.themarioga:gwtmockito`
+> - `GwtMockitoTestRunner` deprecated; `junit:junit` no longer a transitive dependency
 
 ## How do I install it?
 
@@ -268,11 +277,25 @@ To check a release build locally without uploading:
 ## Version history
 
 ### 2.0.0
+
+First release of this fork, and the first release since 1.1.9. It bundles the
+unreleased work of the YCM fork (2.0.0-SNAPSHOT) with the changes made here.
+
+Changes made in this fork (themarioga/gwtmockito):
   * Published to Maven Central as `io.github.themarioga:gwtmockito` (Java packages unchanged).
   * New `GwtMockitoExtension` for JUnit 5 (Jupiter), built against JUnit 6, with the same
-    behaviour as the runner (see the limitations above).
+    behaviour as the runner (see the limitations above). Supports `@ParameterizedTest`,
+    `@RepeatedTest` and `@TestFactory`; `@Nested`, `PER_CLASS` and `MockitoExtension`
+    fail with an explicit message.
+  * The shared Javassist classloader and default settings moved to the `impl` package,
+    so the runner and the extension behave the same.
   * `GwtMockitoTestRunner` is deprecated; `junit:junit` is now an optional dependency.
   * The `ClassCastException` hint now recognizes Mockito 5 mocks in the JUnit 5 extension.
+  * Upgraded to JUnit 6 and migrated the test suite to Jupiter (runner tests run on the
+    vintage engine).
+  * Added a GitHub Actions workflow that releases to Maven Central on `vX.Y.Z` tags.
+
+Changes inherited from the [YCM fork][ycm] (yesamer/gwtmockito):
   * Upgraded to Mockito 5.
   * Upgraded to GWT 2.13.1 (`org.gwtproject`).
   * Upgraded to Java 17.
@@ -315,3 +338,4 @@ To check a release build locally without uploading:
 
 [1]: https://site.mockito.org/
 [orig]: https://github.com/google/gwtmockito
+[ycm]: https://github.com/yesamer/gwtmockito
